@@ -1,0 +1,65 @@
+Author: xiaozaya
+Email: xiaozazhou@gmail.com
+       2353567071@qq.com
+       qibinzhou@whu.edu.cn
+
+The lab is easy. if you have time, I suggest you can do it by yourself firstly. And you can also use IDA to get the pseudo-c code directly, but i don't recommend doing that.
+
+Debug tool:
+	pwndbg
+
+Use the pwndbg to debug the bomb program, and we can know the bomb has the debug info, so we can locate the main funciton to debug directly.
+First, set breakpoint in main function, then run it. You can use 'ni/si' to debug one by one.
+
+This bomb game has a total of 6 levels, phase_1~6. If you have solid knowledge of assembly, you can choose to analyze the assembly code directly.
+phase_1: 
+	input_string:'111111'
+=======================================================================================
+   0x400e32 <main+146>    call   read_line <0x40149e>
+   0x400e37 <main+151>    mov    rdi, rax
+ ► 0x400e3a <main+154>    call   phase_1 <0x400ee0>
+        rdi: 0x603780 (input_strings) ◂— 0x313131313131 /* '111111' */
+        rsi: 0x603780 (input_strings) ◂— 0x313131313131 /* '111111' */
+        rdx: 0x1
+        rcx: 0x6
+=======================================================================================
+
+	use 'si' to follow the phase_1 function.
+We can see, the logic of phase_1 function is easy. Just cmp input_string and a specific string stored in [0x402400]
+=======================================================================================
+ ► 0x400ee0 <phase_1>       sub    rsp, 8
+   0x400ee4 <phase_1+4>     mov    esi, 0x402400
+   0x400ee9 <phase_1+9>     call   strings_not_equal <0x401338>
+   0x400eee <phase_1+14>    test   eax, eax
+   0x400ef0 <phase_1+16>    je     phase_1+23 <0x400ef7>
+   0x400ef2 <phase_1+18>    call   explode_bomb <0x40143a>
+   0x400ef7 <phase_1+23>    add    rsp, 8
+   0x400efb <phase_1+27>    ret
+=======================================================================================
+
+So we can get the string stored in [0x402400]
+=======================================================================================
+pwndbg> x/s 0x402400
+0x402400:       "Border relations with Canada have never been better."
+pwndbg>
+=======================================================================================
+
+So the phase_1 answer is "Border relations with Canada have never been better."
+
+phase_2:
+	input: '1 2 3 4 5 6'
+=======================================================================================
+   0x400e4e <main+174>             call   read_line <0x40149e>
+   0x400e53 <main+179>             mov    rdi, rax
+ ► 0x400e56 <main+182>             call   phase_2 <0x400efc>
+        rdi: 0x6037d0 (input_strings+80) ◂— '1 2 3 4 5 6'
+        rsi: 0x6037d0 (input_strings+80) ◂— '1 2 3 4 5 6'
+        rdx: 0x2
+        rcx: 0xb	
+=======================================================================================
+
+	use 'si' to follow the phase_2 function.
+
+
+
+
